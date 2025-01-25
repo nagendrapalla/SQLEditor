@@ -1,6 +1,4 @@
 import React from 'react';
-import logo from '../assets/logo.png';
-import { Typography } from '@mui/material';
 
 const Header: React.FC = () => {
   return (
