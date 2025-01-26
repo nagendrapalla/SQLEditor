@@ -385,12 +385,6 @@ const CondensedTable: React.FC = () => {
 
   // Calculate pagination data
   const totalPages = Math.ceil(employeeData.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-
-  const currentItems = employeeData.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
 
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage((prev) => prev - 1);
