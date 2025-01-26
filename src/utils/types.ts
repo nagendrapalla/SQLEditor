@@ -6,6 +6,11 @@ export type ExtendedTreeItemProps = {
   label: string;
 };
 
+export interface Tab {
+  id: number;
+  label: string;
+}
+
 export interface DatabaseConnection {
   dbName: string;
   host: string;

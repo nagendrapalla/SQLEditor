@@ -1,11 +1,16 @@
 "use client";
 import logo from "../assets/syf_logo.png";
-import Tabs from "../components/tabs";
+import Tabs from "../components/Tabs";
+import { PlusCircleIcon } from "@heroicons/react/24/outline";
+import { DatabaseConnection } from "../utils/types";
+import Drawer from "../components/Drawer";
+import { useState } from "react";
+import MonacoSQLEditor from "./MonacoSQLEditor";
 
 const teams = [
-  { id: 1, name: "Heroicons", href: "#", initial: "H", current: false },
-  { id: 2, name: "Tailwind Labs", href: "#", initial: "T", current: false },
-  { id: 3, name: "Workcation", href: "#", initial: "W", current: false },
+  { id: 1, name: "Heroicons", href: "#", current: true },
+  { id: 2, name: "Tailwind Labs", href: "#", current: false },
+  { id: 3, name: "Workcation", href: "#", current: false },
 ];
 
 function classNames(...classes: any) {
@@ -13,8 +18,31 @@ function classNames(...classes: any) {
 }
 
 export default function Landing() {
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
+
+  const addNewConnection = (obj: DatabaseConnection) => {
+    setDrawerOpen(false);
+    if (obj && obj.dbName) {
+      teams.push({
+        id: 3,
+        name: obj.dbName,
+        href: "#",
+        current: false,
+      });
+    }
+  };
+
+  const handleOnSQLChange = (value: string) => {
+    console.log(value);
+  };
+
   return (
     <>
+      <Drawer
+        isOpen={isDrawerOpen}
+        onClose={(value) => addNewConnection(value)}
+      ></Drawer>
+
       <div>
         <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
           {/* Sidebar component, swap this element with another sidebar if you like */}
@@ -23,35 +51,76 @@ export default function Landing() {
               <img alt="Your Company" src={logo} className="w-auto" />
             </div>
             <nav className="flex flex-1 flex-col ">
-              <ul role="list" className="flex flex-1 flex-col">
+              <ul role="list" className="flex flex-1 flex-col mt-5">
                 <li>
-                  <div className="text-xs/6 font-semibold text-gray-400">
-                    Your teams
+                  <div className="text-xs px-2 font-semibold text-gray-400 flex justify-between">
+                    <span>Database Connections</span>
+                    <span
+                      className="cursor-pointer"
+                      onClick={() => setDrawerOpen(true)}
+                    >
+                      <PlusCircleIcon className="size-5 text-gray-700 stroke-2" />
+                    </span>
                   </div>
-                  <ul role="list" className="-mx-2 mt-2 space-y-1">
+                  <ul role="list" className="mt-2 space-y-1">
                     {teams.map((team) => (
-                      <li key={team.name}>
-                        <a
-                          href={team.href}
-                          className={classNames(
-                            team.current
-                              ? "bg-gray-50 text-indigo-600"
-                              : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
-                            "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
-                          )}
-                        >
-                          <span
-                            className={classNames(
-                              team.current
-                                ? "border-indigo-600 text-indigo-600"
-                                : "border-gray-200 text-gray-400 group-hover:border-indigo-600 group-hover:text-indigo-600",
-                              "flex size-6 shrink-0 items-center justify-center rounded-lg border bg-white text-[0.625rem] font-medium"
-                            )}
+                      <li
+                        key={team.name}
+                        className={classNames(
+                          team.current
+                            ? "bg-gray-200 text-gray-900"
+                            : "text-gray-700 hover:bg-gray-50 hover:text-gray-500",
+                          "group p-1 text-sm/6 font-semibold flex justify-between items-center"
+                        )}
+                      >
+                        <a href={team.href} className="flex gap-x-3">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="w-5 h-5"
                           >
-                            {team.initial}
-                          </span>
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"
+                            />
+                          </svg>
                           <span className="truncate">{team.name}</span>
                         </a>
+                        <div className="flex gap-x-1">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                            className="size-5"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
+                            />
+                          </svg>
+
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                            className="size-5"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M6 18 18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -61,13 +130,8 @@ export default function Landing() {
                     href="#"
                     className="flex items-center gap-x-4 px-6 py-3 text-sm/6 font-semibold text-gray-900 bg-gray-100 hover:bg-gray-200"
                   >
-                    <img
-                      alt=""
-                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                      className="size-8 rounded-full bg-gray-50"
-                    />
                     <span className="sr-only">Your profile</span>
-                    <span aria-hidden="true">Tom Cook</span>
+                    <span aria-hidden="true">Nagendra Palla</span>
                   </a>
                 </li>
               </ul>
@@ -76,9 +140,15 @@ export default function Landing() {
         </div>
 
         <main className="lg:pl-72">
-          <div>
-            <Tabs />
-          </div>
+          <Tabs />
+          <MonacoSQLEditor          
+            key="sql-editor"
+            handleOnChange={handleOnSQLChange}
+            height="200px"
+            theme="vscode-light"
+            initialValue="SELECT * FROM tableName"
+            width="100%"
+          />
         </main>
       </div>
     </>
