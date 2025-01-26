@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import { Tab } from "../utils/types";
-import ToolMenu from "./ToolMenu";
 
-const Tabs: React.FC = () => {
+interface TabProps {
+  onTabChange: (id: number) => void;
+  onCloseTab: (id: number) => void;
+}
+
+const Tabs: React.FC<TabProps> = ({ onTabChange, onCloseTab }) => {
   const [tabs, setTabs] = useState<Tab[]>([
     {
       id: 1,
@@ -23,6 +27,7 @@ const Tabs: React.FC = () => {
     } else if (updatedTabs.length === 0) {
       setActiveTab(null);
     }
+    onCloseTab(id);
   };
 
   const addNewTab = () => {
@@ -33,6 +38,7 @@ const Tabs: React.FC = () => {
     };
     setTabs([...tabs, newTab]);
     setActiveTab(newTabId);
+    onTabChange(newTabId);
   };
 
   return (
@@ -43,27 +49,31 @@ const Tabs: React.FC = () => {
           {tabs.map((tab) => (
             <div
               key={tab.id}
-              className={`flex items-center gap-5 px-2 py-1 cursor-pointer border-r border-rl-2 border-rl-white ${
+              className={`flex items-center gap-5 px-2 py-1 cursor-pointer border-e border-e-gray-300 bg-gray-200 ${
                 activeTab === tab.id
-                  ? "text-white bg-indigo-600"
+                  ? "text-white bg-slate-500"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                onTabChange(tab.id);
+              }}
             >
               <div className="flex items-center gap-1">
                 <span>{tab.label}</span>
               </div>
-              {activeTab === tab.id && (
-                <button
-                  className="text-gray-100 cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering tab switch
-                    closeTab(tab.id);
-                  }}
-                >
-                  ✕
-                </button>
-              )}
+
+              <button
+                className={`cursor-pointer ${
+                  activeTab === tab.id ? "text-gray-100" : "text-gray-500"
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering tab switch
+                  closeTab(tab.id);
+                }}
+              >
+                ✕
+              </button>
             </div>
           ))}
         </div>
@@ -89,7 +99,6 @@ const Tabs: React.FC = () => {
       </div>
 
       {/* Tab Content */}
-      <ToolMenu />
       {/* {tabs.length > 0 && activeTab !== null ? (
         <div className="bg-white">
           <h1 className="text-2xl font-bold text-gray-800">

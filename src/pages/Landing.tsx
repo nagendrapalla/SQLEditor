@@ -1,11 +1,14 @@
 "use client";
-import logo from "../assets/syf_logo.png";
 import Tabs from "../components/Tabs";
 import { PlusCircleIcon } from "@heroicons/react/24/outline";
 import { DatabaseConnection } from "../utils/types";
 import Drawer from "../components/Drawer";
 import { useState } from "react";
-import MonacoSQLEditor from "./MonacoSQLEditor";
+import ToolMenu from "../components/ToolMenu";
+import AceSqlEditor from "../components/AceSqlEditor";
+import { format } from "sql-formatter";
+import { FileDownIcon } from "lucide-react";
+import CondensedTable from "../components/CondensedTable";
 
 const teams = [
   { id: 1, name: "Heroicons", href: "#", current: true },
@@ -19,6 +22,8 @@ function classNames(...classes: any) {
 
 export default function Landing() {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<number>(1);
+  const [sqlQueries, setSqlQueries] = useState<{ [key: number]: string }>({});
 
   const addNewConnection = (obj: DatabaseConnection) => {
     setDrawerOpen(false);
@@ -32,8 +37,47 @@ export default function Landing() {
     }
   };
 
-  const handleOnSQLChange = (value: string) => {
-    console.log(value);
+  const handleOnSQLChange = (newQuery: string) => {
+    setSqlQueries((prevQueries) => ({
+      ...prevQueries,
+      [activeTab]: newQuery,
+    }));
+  };
+
+  const handleCloseTab = (id: number) => {
+    const newQueries = { ...sqlQueries };
+    delete newQueries[id];
+    setSqlQueries(newQueries);
+  };
+
+  const handleRun = () => {};
+
+  const handleSave = () => {
+    const blob = new Blob([sqlQueries[activeTab]], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `query_${activeTab}.sql`;
+    link.click();
+
+    URL.revokeObjectURL(url);
+  };
+
+  const formatQuery = () => {
+    const formattedQuery = format(sqlQueries[activeTab] || "");
+    setSqlQueries((prevQueries) => ({
+      ...prevQueries,
+      [activeTab]: formattedQuery,
+    }));
+  };
+
+  const onTabChange = (tabId: number) => {
+    setSqlQueries((prevQueries) => ({
+      ...prevQueries,
+      [tabId]: prevQueries[tabId] || "",
+    }));
+    setActiveTab(tabId);
   };
 
   return (
@@ -47,11 +91,11 @@ export default function Landing() {
         <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className="flex grow flex-col border-r border-gray-200 bg-white-900">
-            <div className="flex p-2 px-5 shrink-0 items-center flex-col">
+            {/* <div className="flex p-2 px-5 shrink-0 items-center flex-col">
               <img alt="Your Company" src={logo} className="w-auto" />
-            </div>
+            </div> */}
             <nav className="flex flex-1 flex-col ">
-              <ul role="list" className="flex flex-1 flex-col mt-5">
+              <ul role="list" className="flex flex-1 flex-col mt-2">
                 <li>
                   <div className="text-xs px-2 font-semibold text-gray-400 flex justify-between">
                     <span>Database Connections</span>
@@ -140,15 +184,34 @@ export default function Landing() {
         </div>
 
         <main className="lg:pl-72">
-          <Tabs />
-          <MonacoSQLEditor          
-            key="sql-editor"
-            handleOnChange={handleOnSQLChange}
-            height="200px"
-            theme="vscode-light"
-            initialValue="SELECT * FROM tableName"
-            width="100%"
+          <Tabs
+            key="query-tabs"
+            onCloseTab={handleCloseTab}
+            onTabChange={onTabChange}
           />
+          <ToolMenu
+            key="tools_menu"
+            onFormat={formatQuery}
+            onRun={handleRun}
+            onSave={handleSave}
+            onClear={() => handleOnSQLChange("")}
+          />
+
+          <AceSqlEditor
+            query={sqlQueries[activeTab]}
+            onQueryChange={handleOnSQLChange}
+          />
+
+          <div className="p-1 bg-gray-100 flex justify-between items-center gap-x-2">
+            <p className="text-xs text-green-700">
+              Query executed in 0.0001 seconds
+            </p>
+            <div className="flex gap-2">
+              <FileDownIcon className="w-6 h-6 text-green-600 cursor-pointer hover:text-gray-400" />
+            </div>
+          </div>
+
+          <CondensedTable />
         </main>
       </div>
     </>

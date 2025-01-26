@@ -30,6 +30,7 @@ const MonacoSQLEditor: React.FC<MonacoSqlEditorProps> = ({
     const monacoInstance = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
     const onInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        console.log(event.target.value);
         handleOnChange(event.target.value); // Pass the value back to the parent
     };
 
