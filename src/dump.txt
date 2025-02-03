@@ -1,22 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const TreeNode = ({ node, fetchChildren }) => {
+interface TreeNodeData {
+  id: number; // Or string, adjust as needed
+  name: string;
+  children?: TreeNodeData[];
+}
+
+const TreeNode: React.FC<{ node: TreeNodeData; fetchChildren: (parentId: number | null) => Promise<TreeNodeData[]> }> = ({ node, fetchChildren }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [children, setChildren] = useState(null);
+  const [children, setChildren] = useState<TreeNodeData[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleToggle = async () => {
     if (node.children && node.children.length > 0) {
       setIsExpanded(!isExpanded);
-      return; // Children already loaded
+      return;
     }
 
-    if (!children && !isLoading) { // Only fetch if not already fetched or loading
+    if (!children && !isLoading) {
       setIsLoading(true);
       try {
-        const fetchedChildren = await fetchChildren(node.id); // Pass node.id to API
+        const fetchedChildren = await fetchChildren(node.id);
         setChildren(fetchedChildren);
-        setIsExpanded(true); // Expand after loading
+        setIsExpanded(true);
       } catch (error) {
         console.error("Error fetching children:", error);
         // Handle error, e.g., display a message
@@ -24,7 +30,7 @@ const TreeNode = ({ node, fetchChildren }) => {
         setIsLoading(false);
       }
     } else if (children) {
-        setIsExpanded(!isExpanded)
+        setIsExpanded(!isExpanded);
     }
   };
 
@@ -34,12 +40,12 @@ const TreeNode = ({ node, fetchChildren }) => {
         className="flex items-center cursor-pointer"
         onClick={handleToggle}
       >
-        {(node.children || children) && ( // Show toggle if has children or loaded children
+        {(node.children || children) && (
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className={`h-5 w-5 transition-transform duration-200 ${
               isExpanded ? 'rotate-90' : ''
-            } ${isLoading ? 'animate-spin' : ''}`} // Add spin animation while loading
+            } ${isLoading ? 'animate-spin' : ''}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -53,13 +59,12 @@ const TreeNode = ({ node, fetchChildren }) => {
           </svg>
         )}
         <span className="ml-2">{node.name}</span>
-        {isLoading && <span className="ml-2">Loading...</span>} {/* Loading indicator */}
-
+        {isLoading && <span className="ml-2">Loading...</span>}
       </div>
-      {isExpanded && (children || node.children) && ( // Render children if loaded
+      {isExpanded && (children || node.children) && (
         <div className="ml-6">
           {(children || node.children).map((child) => (
-            <TreeNode key={child.id || child.name} node={child} fetchChildren={fetchChildren} /> // Use child.id if available
+            <TreeNode key={child.id || child.name} node={child} fetchChildren={fetchChildren} />
           ))}
         </div>
       )}
@@ -67,43 +72,47 @@ const TreeNode = ({ node, fetchChildren }) => {
   );
 };
 
-const TreeView = ({ apiUrl }) => {
-  const [treeData, setTreeData] = useState(null);
+interface TreeViewProps {
+  apiUrl: string;
+}
+
+const TreeView: React.FC<TreeViewProps> = ({ apiUrl }) => {
+  const [treeData, setTreeData] = useState<TreeNodeData[] | null>(null);
   const [isLoadingRoot, setIsLoadingRoot] = useState(true);
 
-  const fetchChildren = async (parentId) => {
+  const fetchChildren = async (parentId: number | null): Promise<TreeNodeData[]> => {
     try {
-        const response = await fetch(`${apiUrl}?parentId=${parentId}`); // Use parentId in API call
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error("Error fetching children:", error);
-        throw error;
-    }
-  }
-
-  React.useEffect(() => {
-      const getRootData = async () => {
-          try {
-              const data = await fetchChildren(null); // Fetch root nodes (parentId null or undefined)
-              setTreeData(data);
-          } catch (error) {
-              console.error("Error fetching root data:", error);
-          } finally {
-              setIsLoadingRoot(false);
-          }
+      const response = await fetch(`${apiUrl}${parentId ? `?parentId=${parentId}` : ''}`); // Handle null parentId
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      getRootData();
+      return await response.json() as TreeNodeData[]; // Type assertion
+    } catch (error) {
+      console.error("Error fetching children:", error);
+      throw error; // Re-throw to be caught by the caller if needed
+    }
+  };
+
+  useEffect(() => {
+    const getRootData = async () => {
+      try {
+        const data = await fetchChildren(null);
+        setTreeData(data);
+      } catch (error) {
+        console.error("Error fetching root data:", error);
+      } finally {
+        setIsLoadingRoot(false);
+      }
+    };
+    getRootData();
   }, [apiUrl]);
 
   if (isLoadingRoot) {
-      return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   if (!treeData) {
-      return <div>Error loading data.</div>
+    return <div>Error loading data.</div>;
   }
 
   return (
