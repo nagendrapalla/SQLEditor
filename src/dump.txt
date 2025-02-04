@@ -1,127 +1,42 @@
-import React, { useState, useEffect } from 'react';
+function cleanSQL(sql) {
+  // 1. Remove comments
+  sql = sql.replace(/--.*$/gm, ''); // Single-line comments
+  sql = sql.replace(/\/\*[\s\S]*?\*\//g, ''); // Multi-line comments
 
-interface TreeNodeData {
-  id: number; // Or string, adjust as needed
-  name: string;
-  children?: TreeNodeData[];
+  // 2. Normalize whitespace
+  sql = sql.replace(/\s+/g, ' '); // Collapse multiple spaces/newlines
+  sql = sql.trim(); // Remove leading/trailing whitespace
+
+  // 3. Uppercase keywords (optional)
+  const keywords = ['SELECT', 'FROM', 'WHERE', 'GROUP BY', 'ORDER BY', 'HAVING', 'JOIN', 'INNER', 'LEFT', 'RIGHT', 'FULL', 'ON', 'AND', 'OR', 'NOT', 'IN', 'BETWEEN', 'LIKE', 'LIMIT', 'OFFSET', 'AS', 'DISTINCT', 'CREATE', 'TABLE', 'INSERT', 'UPDATE', 'DELETE', 'ALTER', 'DROP'];
+  const keywordRegex = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
+  sql = sql.replace(keywordRegex, (match) => match.toUpperCase());
+
+  // 4. Basic indentation (more complex, requires parsing for perfect result)
+  // This is a simplified example and won't handle all cases perfectly.
+  sql = sql.replace(/;\s*$/g, ''); // Remove trailing semicolon (if present)
+  let indentLevel = 0;
+  sql = sql.split('\n').map(line => {
+    line = line.trim();
+    if (line.startsWith(')')) indentLevel--;
+    const indentedLine = '  '.repeat(indentLevel) + line;
+    if (line.endsWith('(') || line.endsWith(',')) indentLevel++;
+    return indentedLine;
+  }).join('\n');
+
+  return sql;
 }
 
-const TreeNode: React.FC<{ node: TreeNodeData; fetchChildren: (parentId: number | null) => Promise<TreeNodeData[]> }> = ({ node, fetchChildren }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [children, setChildren] = useState<TreeNodeData[] | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+const dirtySQL = `
+/*
+  This is a multi-line comment.
+*/
+SELECT  id, name ,  \nvalue -- This is a single-line comment
+\nFROM   my_table 
+WHERE value > 10   AND status = 'active';
 
-  const handleToggle = async () => {
-    if (node.children && node.children.length > 0) {
-      setIsExpanded(!isExpanded);
-      return;
-    }
+select COUNT(*) FROM another_table; -- another comment
+`;
 
-    if (!children && !isLoading) {
-      setIsLoading(true);
-      try {
-        const fetchedChildren = await fetchChildren(node.id);
-        setChildren(fetchedChildren);
-        setIsExpanded(true);
-      } catch (error) {
-        console.error("Error fetching children:", error);
-        // Handle error, e.g., display a message
-      } finally {
-        setIsLoading(false);
-      }
-    } else if (children) {
-        setIsExpanded(!isExpanded);
-    }
-  };
-
-  return (
-    <div>
-      <div
-        className="flex items-center cursor-pointer"
-        onClick={handleToggle}
-      >
-        {(node.children || children) && (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className={`h-5 w-5 transition-transform duration-200 ${
-              isExpanded ? 'rotate-90' : ''
-            } ${isLoading ? 'animate-spin' : ''}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        )}
-        <span className="ml-2">{node.name}</span>
-        {isLoading && <span className="ml-2">Loading...</span>}
-      </div>
-      {isExpanded && (children || node.children) && (
-        <div className="ml-6">
-          {(children || node.children).map((child) => (
-            <TreeNode key={child.id || child.name} node={child} fetchChildren={fetchChildren} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-interface TreeViewProps {
-  apiUrl: string;
-}
-
-const TreeView: React.FC<TreeViewProps> = ({ apiUrl }) => {
-  const [treeData, setTreeData] = useState<TreeNodeData[] | null>(null);
-  const [isLoadingRoot, setIsLoadingRoot] = useState(true);
-
-  const fetchChildren = async (parentId: number | null): Promise<TreeNodeData[]> => {
-    try {
-      const response = await fetch(`${apiUrl}${parentId ? `?parentId=${parentId}` : ''}`); // Handle null parentId
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json() as TreeNodeData[]; // Type assertion
-    } catch (error) {
-      console.error("Error fetching children:", error);
-      throw error; // Re-throw to be caught by the caller if needed
-    }
-  };
-
-  useEffect(() => {
-    const getRootData = async () => {
-      try {
-        const data = await fetchChildren(null);
-        setTreeData(data);
-      } catch (error) {
-        console.error("Error fetching root data:", error);
-      } finally {
-        setIsLoadingRoot(false);
-      }
-    };
-    getRootData();
-  }, [apiUrl]);
-
-  if (isLoadingRoot) {
-    return <div>Loading...</div>;
-  }
-
-  if (!treeData) {
-    return <div>Error loading data.</div>;
-  }
-
-  return (
-    <div className="p-4 bg-white rounded-md shadow-md">
-      {treeData.map((node) => (
-        <TreeNode key={node.id || node.name} node={node} fetchChildren={fetchChildren} />
-      ))}
-    </div>
-  );
-};
-
-export default TreeView;
+const cleanSQLResult = cleanSQL(dirtySQL);
+console.log(cleanSQLResult);
