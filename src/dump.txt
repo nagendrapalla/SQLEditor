@@ -1,42 +1,25 @@
-Goal: Systematic Remediation of High, Medium, and Low Security Vulnerabilities
+Goal: Personal Improvement in Tech Stack (AWS, Generative AI, Solutions Architecture)
 Objective
-Ensure the security and integrity of Jira and ConnectALL applications by systematically identifying, categorizing, and remediating high, medium, and low security vulnerabilities.
+Develop expertise in AWS, Generative AI, and Solutions Architecture to enhance technical skills and contribute effectively to cloud-based, AI-driven, and scalable system designs.
 
 Deliverables
-Comprehensive Vulnerability Assessment
-
-Conduct automated security scans (OWASP ZAP, SonarQube, Nessus) to detect vulnerabilities.
-Perform manual security testing for business-critical components.
-Categorize vulnerabilities into High, Medium, and Low based on risk impact.
-High-Risk Vulnerability Remediation (Critical & High)
-
-Fix SLA: Resolve within 2-4 weeks based on criticality.
-Apply security patches for Jira and ConnectALL immediately.
-Address authentication flaws, misconfigurations, and exposed endpoints.
-Ensure all APIs and integrations follow security best practices.
-Medium-Risk Vulnerability Fixes
-
-Fix SLA: Resolve within 30-60 days to prevent future exploitation.
-Optimize access controls, session handling, and encryption standards.
-Upgrade outdated libraries, plugins, and third-party dependencies.
-Low-Risk Vulnerability Cleanup & Hardening
-
-Fix SLA: Resolve within 90 days to enhance overall security posture.
-Improve logging, monitoring, and alerting mechanisms.
-Enforce secure coding practices and prevent minor security loopholes.
-Ongoing Security Governance & Compliance
-
-Implement continuous security monitoring and regular security audits.
-Establish a vulnerability management process with tracking and reporting.
-Align remediation efforts with ISO 27001, SOC2, GDPR, and internal compliance policies.
-Security Awareness & Developer Training
-
-Conduct security training for developers and admins on best practices.
-Document remediation strategies and establish a security playbook.
-Host quarterly security review meetings to track progress.
+1. AWS (Amazon Web Services)
+Gain proficiency in core AWS services (EC2, S3, Lambda, RDS, DynamoDB, IAM, VPC).
+Learn AWS security best practices (IAM roles, KMS encryption, WAF).
+Practice serverless and microservices architectures using AWS Lambda, API Gateway, and Step Functions.
+Obtain AWS Solution Architect – Associate/Professional Certification.
+2. Generative AI
+Understand foundation models (GPT, Llama, Claude) and their applications.
+Learn how to fine-tune models using Hugging Face, OpenAI API, and LangChain.
+Implement AI-driven applications in a cloud environment (AWS Bedrock, SageMaker).
+Explore use cases in automation, NLP, and image generation.
+3. Solutions Architecture
+Master design patterns and best practices for scalable and resilient systems.
+Gain expertise in event-driven architectures, microservices, and distributed systems.
+Learn trade-offs in system design (cost, performance, availability, security).
+Hands-on experience with architecting large-scale, cloud-native applications.
 Measures of Success
-✅ 100% Remediation of High-Risk Vulnerabilities within SLA.
-✅ 80%+ Reduction in Medium & Low Vulnerabilities in 6 months.
-✅ Zero Critical Security Incidents post-remediation.
-✅ Improved Compliance Score in security audits.
-✅ Security Awareness: Conduct at least 2 training sessions per year.
+✅ AWS Certification achieved within 6 months.
+✅ Hands-on AI project using Generative AI in a real-world scenario.
+✅ Architect a scalable cloud solution and document it as a case study.
+✅ Technical Blog/Presentation on learnings from AWS, Gen AI, or Architecture.
