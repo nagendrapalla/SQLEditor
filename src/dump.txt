@@ -1,90 +1,18 @@
-import React, { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
-export default function CreativeTableLoader() {
-  const [data, setData] = useState(null);
-  const [loadingTime, setLoadingTime] = useState(5); // 5 seconds countdown
-  const [messageIndex, setMessageIndex] = useState(0);
+const exportToExcel = (data: any[], fileName: string) => {
+  // Create a new workbook and worksheet
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 
-  // Fun loading messages
-  const loadingMessages = [
-    "📊 Fetching data from the cloud...",
-    "🕵️‍♂️ Searching for the best results...",
-    "🚀 Optimizing your experience...",
-    "🔄 Almost there, hold tight...",
-    "🎉 Just a moment...!",
-  ];
+  // Generate an Excel file
+  const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
 
-  useEffect(() => {
-    const countdown = setInterval(() => {
-      setLoadingTime((prev) => {
-        if (prev === 1) {
-          clearInterval(countdown);
-          return 0;
-        }
-        return prev - 1;
-      });
+  // Convert to Blob and trigger download
+  const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+  saveAs(blob, `${fileName}.xlsx`);
+};
 
-      // Cycle through messages
-      setMessageIndex((prev) => (prev + 1) % loadingMessages.length);
-    }, 1000);
-
-    setTimeout(() => {
-      setData(
-        Array.from({ length: 5 }, (_, i) => ({
-          id: i + 1,
-          name: `User ${i + 1}`,
-          age: 20 + (i % 30),
-          location: ["New York", "London", "Tokyo", "Paris"][i % 4],
-        }))
-      );
-    }, 5000);
-
-    return () => clearInterval(countdown);
-  }, []);
-
-  return (
-    <div className="max-w-4xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg">
-      {data ? (
-        <table className="w-full border-collapse">
-          <thead className="bg-blue-500 text-white">
-            <tr>
-              <th className="p-3 text-left">ID</th>
-              <th className="p-3 text-left">Name</th>
-              <th className="p-3 text-left">Age</th>
-              <th className="p-3 text-left">Location</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y">
-            {data.map((row) => (
-              <tr key={row.id} className="hover:bg-gray-100">
-                <td className="p-3">{row.id}</td>
-                <td className="p-3">{row.name}</td>
-                <td className="p-3">{row.age}</td>
-                <td className="p-3">{row.location}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        // Loading State with Fun Messages
-        <div className="flex flex-col items-center justify-center h-60">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 mb-4"></div>
-          <p className="text-lg font-semibold">{loadingMessages[messageIndex]}</p>
-          <p className="text-gray-500">⏳ Data will be ready in <strong>{loadingTime}s</strong>...</p>
-
-          {/* Skeleton Loader for Table */}
-          <div className="w-full mt-6">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="animate-pulse flex space-x-4 p-3">
-                <div className="h-4 bg-gray-300 rounded w-10"></div>
-                <div className="h-4 bg-gray-300 rounded w-24"></div>
-                <div className="h-4 bg-gray-300 rounded w-12"></div>
-                <div className="h-4 bg-gray-300 rounded w-20"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+export default exportToExcel;
