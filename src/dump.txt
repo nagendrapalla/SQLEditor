@@ -1,135 +1,90 @@
-import React, { useState, useMemo } from "react";
-import {
-  useReactTable,
-  getCoreRowModel,
-  ColumnDef,
-  flexRender,
-} from "@tanstack/react-table";
+import React, { useState, useEffect } from "react";
 
-const data = Array.from({ length: 100 }, (_, i) => ({
-  id: i + 1,
-  name: `User ${i + 1}`,
-  age: 20 + (i % 30),
-  location: ["New York", "London", "Tokyo", "Paris"][i % 4],
-}));
+export default function CreativeTableLoader() {
+  const [data, setData] = useState(null);
+  const [loadingTime, setLoadingTime] = useState(5); // 5 seconds countdown
+  const [messageIndex, setMessageIndex] = useState(0);
 
-const columns: ColumnDef<typeof data[number]>[] = [
-  { accessorKey: "id", header: "ID" },
-  { accessorKey: "name", header: "Name" },
-  { accessorKey: "age", header: "Age" },
-  { accessorKey: "location", header: "Location" },
-];
+  // Fun loading messages
+  const loadingMessages = [
+    "📊 Fetching data from the cloud...",
+    "🕵️‍♂️ Searching for the best results...",
+    "🚀 Optimizing your experience...",
+    "🔄 Almost there, hold tight...",
+    "🎉 Just a moment...!",
+  ];
 
-export default function PaginatedTable() {
-  const [pageIndex, setPageIndex] = useState(0);
-  const pageSize = 10; // Fixed page size
-  const totalPages = Math.ceil(data.length / pageSize);
+  useEffect(() => {
+    const countdown = setInterval(() => {
+      setLoadingTime((prev) => {
+        if (prev === 1) {
+          clearInterval(countdown);
+          return 0;
+        }
+        return prev - 1;
+      });
 
-  // Slice data for the current page
-  const paginatedData = useMemo(() => {
-    const start = pageIndex * pageSize;
-    return data.slice(start, start + pageSize);
-  }, [pageIndex]);
+      // Cycle through messages
+      setMessageIndex((prev) => (prev + 1) % loadingMessages.length);
+    }, 1000);
 
-  const table = useReactTable({
-    data: paginatedData,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
-  // Dynamic page buttons logic (Show at least 5 pages)
-  const getPaginationButtons = () => {
-    const maxPages = 5; // At least 5 page numbers visible
-    const buttons = [];
-    let startPage = Math.max(0, pageIndex - Math.floor(maxPages / 2));
-    let endPage = Math.min(totalPages - 1, startPage + maxPages - 1);
-
-    // Adjust start if we are near the end
-    if (endPage - startPage + 1 < maxPages) {
-      startPage = Math.max(0, endPage - maxPages + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      buttons.push(
-        <button
-          key={i}
-          className={`px-3 py-1 rounded ${
-            pageIndex === i ? "bg-blue-500 text-white" : "bg-gray-300"
-          }`}
-          onClick={() => setPageIndex(i)}
-        >
-          {i + 1}
-        </button>
+    setTimeout(() => {
+      setData(
+        Array.from({ length: 5 }, (_, i) => ({
+          id: i + 1,
+          name: `User ${i + 1}`,
+          age: 20 + (i % 30),
+          location: ["New York", "London", "Tokyo", "Paris"][i % 4],
+        }))
       );
-    }
+    }, 5000);
 
-    return buttons;
-  };
+    return () => clearInterval(countdown);
+  }, []);
 
   return (
-    <div className="max-h-[500px] overflow-auto border rounded-lg shadow-lg">
-      <table className="w-full border-collapse">
-        <thead className="sticky top-0 bg-blue-500 text-white">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th key={header.id} className="p-3 text-left">
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
-              ))}
+    <div className="max-w-4xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg">
+      {data ? (
+        <table className="w-full border-collapse">
+          <thead className="bg-blue-500 text-white">
+            <tr>
+              <th className="p-3 text-left">ID</th>
+              <th className="p-3 text-left">Name</th>
+              <th className="p-3 text-left">Age</th>
+              <th className="p-3 text-left">Location</th>
             </tr>
-          ))}
-        </thead>
-        <tbody className="bg-white divide-y">
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="hover:bg-gray-100">
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="p-3">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="bg-white divide-y">
+            {data.map((row) => (
+              <tr key={row.id} className="hover:bg-gray-100">
+                <td className="p-3">{row.id}</td>
+                <td className="p-3">{row.name}</td>
+                <td className="p-3">{row.age}</td>
+                <td className="p-3">{row.location}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        // Loading State with Fun Messages
+        <div className="flex flex-col items-center justify-center h-60">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 mb-4"></div>
+          <p className="text-lg font-semibold">{loadingMessages[messageIndex]}</p>
+          <p className="text-gray-500">⏳ Data will be ready in <strong>{loadingTime}s</strong>...</p>
 
-      {/* Pagination Controls */}
-      <div className="flex justify-center items-center gap-2 p-4 bg-gray-100 border-t">
-        <button
-          className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
-          onClick={() => setPageIndex(0)}
-          disabled={pageIndex === 0}
-        >
-          First
-        </button>
-
-        <button
-          className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
-          onClick={() => setPageIndex((prev) => Math.max(prev - 1, 0))}
-          disabled={pageIndex === 0}
-        >
-          Prev
-        </button>
-
-        {/* Page Numbers */}
-        {getPaginationButtons()}
-
-        <button
-          className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
-          onClick={() => setPageIndex((prev) => Math.min(prev + 1, totalPages - 1))}
-          disabled={pageIndex >= totalPages - 1}
-        >
-          Next
-        </button>
-
-        <button
-          className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
-          onClick={() => setPageIndex(totalPages - 1)}
-          disabled={pageIndex >= totalPages - 1}
-        >
-          Last
-        </button>
-      </div>
+          {/* Skeleton Loader for Table */}
+          <div className="w-full mt-6">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="animate-pulse flex space-x-4 p-3">
+                <div className="h-4 bg-gray-300 rounded w-10"></div>
+                <div className="h-4 bg-gray-300 rounded w-24"></div>
+                <div className="h-4 bg-gray-300 rounded w-12"></div>
+                <div className="h-4 bg-gray-300 rounded w-20"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
