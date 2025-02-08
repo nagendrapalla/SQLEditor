@@ -1,25 +1,93 @@
-Goal: Personal Improvement in Tech Stack (AWS, Generative AI, Solutions Architecture)
-Objective
-Develop expertise in AWS, Generative AI, and Solutions Architecture to enhance technical skills and contribute effectively to cloud-based, AI-driven, and scalable system designs.
+import React, { useState, useMemo } from "react";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  ColumnDef,
+  flexRender,
+} from "@tanstack/react-table";
 
-Deliverables
-1. AWS (Amazon Web Services)
-Gain proficiency in core AWS services (EC2, S3, Lambda, RDS, DynamoDB, IAM, VPC).
-Learn AWS security best practices (IAM roles, KMS encryption, WAF).
-Practice serverless and microservices architectures using AWS Lambda, API Gateway, and Step Functions.
-Obtain AWS Solution Architect – Associate/Professional Certification.
-2. Generative AI
-Understand foundation models (GPT, Llama, Claude) and their applications.
-Learn how to fine-tune models using Hugging Face, OpenAI API, and LangChain.
-Implement AI-driven applications in a cloud environment (AWS Bedrock, SageMaker).
-Explore use cases in automation, NLP, and image generation.
-3. Solutions Architecture
-Master design patterns and best practices for scalable and resilient systems.
-Gain expertise in event-driven architectures, microservices, and distributed systems.
-Learn trade-offs in system design (cost, performance, availability, security).
-Hands-on experience with architecting large-scale, cloud-native applications.
-Measures of Success
-✅ AWS Certification achieved within 6 months.
-✅ Hands-on AI project using Generative AI in a real-world scenario.
-✅ Architect a scalable cloud solution and document it as a case study.
-✅ Technical Blog/Presentation on learnings from AWS, Gen AI, or Architecture.
+const data = Array.from({ length: 100 }, (_, i) => ({
+  id: i + 1,
+  name: `User ${i + 1}`,
+  age: 20 + (i % 30),
+  location: ["New York", "London", "Tokyo", "Paris"][i % 4],
+}));
+
+const columns: ColumnDef<typeof data[number]>[] = [
+  { accessorKey: "id", header: "ID" },
+  { accessorKey: "name", header: "Name" },
+  { accessorKey: "age", header: "Age" },
+  { accessorKey: "location", header: "Location" },
+];
+
+export default function PaginatedTable() {
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+
+  const paginatedData = useMemo(() => {
+    const start = pageIndex * pageSize;
+    return data.slice(start, start + pageSize);
+  }, [pageIndex, pageSize]);
+
+  const table = useReactTable({
+    data: paginatedData,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    pageCount: Math.ceil(data.length / pageSize),
+    manualPagination: true,
+  });
+
+  return (
+    <div className="max-h-[500px] overflow-auto border rounded-lg shadow-lg">
+      <table className="w-full border-collapse">
+        <thead className="sticky top-0 bg-blue-500 text-white">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <th key={header.id} className="p-3 text-left">
+                  {flexRender(header.column.columnDef.header, header.getContext())}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody className="bg-white divide-y">
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id} className="hover:bg-gray-100">
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id} className="p-3">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-between items-center p-4 bg-gray-100 border-t">
+        <button
+          className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
+          onClick={() => setPageIndex((prev) => Math.max(prev - 1, 0))}
+          disabled={pageIndex === 0}
+        >
+          Previous
+        </button>
+
+        <span>
+          Page <strong>{pageIndex + 1}</strong> of <strong>{Math.ceil(data.length / pageSize)}</strong>
+        </span>
+
+        <button
+          className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
+          onClick={() => setPageIndex((prev) => Math.min(prev + 1, Math.ceil(data.length / pageSize) - 1))}
+          disabled={pageIndex >= Math.ceil(data.length / pageSize) - 1}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
